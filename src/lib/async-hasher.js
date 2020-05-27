@@ -16,7 +16,7 @@ const hashPNG = (data, bits, method) => {
 
 const hashJPEG = (data, bits, method) => {
   try {
-    const decoded = jpeg.decode(data)
+    const decoded = jpeg.decode(data, { maxMemoryUsageInMB: 1024 })
     return blockhash(decoded, bits, method ? 2 : 1)
   } catch (error) {
     console.error(error.message)
