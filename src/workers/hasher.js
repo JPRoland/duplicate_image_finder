@@ -27,12 +27,9 @@ if (!isMainThread) {
 
   hashImages(workerData, 16)
     .then((data) => {
-      //   console.log(data)
       parentPort.postMessage(data)
     })
     .catch((e) => {
       console.error(e.message)
     })
-
-  //   parentPort.postMessage(hashImages(workerData, 16))
 }

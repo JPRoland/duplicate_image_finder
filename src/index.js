@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const { Worker } = require('worker_threads')
 const os = require('os')
 const fs = require('fs').promises
@@ -39,11 +40,25 @@ const distributeLoadAcrossWorkers = async (workers, images) => {
 }
 
 const argv = require('yargs')
-  .usage('Usage: $0 -d [dir] -b [bits]')
+  .scriptName('find-duplicates')
+  .usage('Usage: $0 -d [search dir] -b [bits] -o [output file]')
+  .help('h')
+  .alias('h', 'help')
+  .alias('o', 'output')
+  .describe('o', 'Output file. If not specified, prints result to console.')
   .alias('d', 'dir')
+  .nargs('d', 1)
+  .nargs('b', 1)
+  .nargs('o', 1)
+  .describe('d', 'Directory to search')
   .alias('b', 'bits')
+  .describe('b', 'Bits per row for hashing image')
   .default('b', 16)
-  .demandOption(['d', 'b']).argv
+  .boolean('r')
+  .alias('r', 'remove')
+  .describe('r', 'Delete found duplicates')
+  .conflicts('r', 'o')
+  .demandOption('d', 'Search directory is required').argv
 
 const getImages = async (dir) => {
   try {
@@ -64,14 +79,45 @@ const getImages = async (dir) => {
 }
 
 const run = async () => {
-  const images = await getImages(argv.dir)
-  console.log('Hashing images...')
-  const hashes = await distributeLoadAcrossWorkers(cpuCount, images)
-  const duplicates = Object.values(hashes).filter((images) => images.length > 1)
-  console.log('Duplicate images: ')
-  duplicates.forEach((dupes) => {
-    dupes.forEach((dupe) => console.log(dupe))
-  })
+  try {
+    const images = await getImages(argv.dir)
+    console.log('Hashing images...')
+    const hashes = await distributeLoadAcrossWorkers(cpuCount, images)
+    const duplicates = Object.values(hashes).filter(
+      (images) => images.length > 1
+    )
+    if (argv.output) {
+      const fd = await fs.open(argv.output, 'a')
+      for (let dupes of duplicates) {
+        for (let i = 0; i < dupes.length; i++) {
+          await fd.appendFile(`${dupes[i]}\n`)
+        }
+        await fd.appendFile('\n')
+      }
+      await fd.close()
+    } else if (argv.remove) {
+      console.log('Deleting duplicates...')
+      for (let dupes of duplicates) {
+        for (let i = 0; i < dupes.length; i++) {
+          if (i === 0) {
+            continue
+          } else {
+            await fs.unlink(dupes[i])
+          }
+        }
+      }
+    } else {
+      console.log('Duplicate images: ')
+      duplicates.forEach((dupes) => {
+        dupes.forEach((dupe) => console.log(dupe))
+      })
+    }
+
+    console.log('Done')
+  } catch (error) {
+    console.error(error.message)
+    process.exit()
+  }
 }
 
 run()
