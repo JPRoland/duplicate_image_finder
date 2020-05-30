@@ -4,6 +4,7 @@ const os = require('os')
 const fs = require('fs').promises
 const path = require('path')
 const merge = require('lodash.merge')
+const ora = require('ora')
 
 const cpuCount = os.cpus().length
 
@@ -81,7 +82,7 @@ const getImages = async (dir) => {
 const run = async () => {
   try {
     const images = await getImages(argv.dir)
-    console.log('Hashing images...')
+    let spinner = ora('Hashing images').start()
     const hashes = await distributeLoadAcrossWorkers(
       cpuCount,
       images,
@@ -90,7 +91,9 @@ const run = async () => {
     const duplicates = Object.values(hashes).filter(
       (images) => images.length > 1
     )
+    spinner.succeed('Hashed images')
     if (argv.output) {
+      spinner = ora(`Saving results to ${argv.output}`).start()
       const fd = await fs.open(argv.output, 'a')
       for (let dupes of duplicates) {
         for (let i = 0; i < dupes.length; i++) {
@@ -99,8 +102,9 @@ const run = async () => {
         await fd.appendFile('\n')
       }
       await fd.close()
+      spinner.succeed(`Results saved to ${argv.output}`)
     } else if (argv.remove) {
-      console.log('Deleting duplicates...')
+      spinner = ora('Deleting duplicates...').start()
       for (let dupes of duplicates) {
         for (let i = 0; i < dupes.length; i++) {
           if (i === 0) {
@@ -110,14 +114,13 @@ const run = async () => {
           }
         }
       }
+      spinner.succeed('Duplicates deleted')
     } else {
       console.log('Duplicate images: ')
       duplicates.forEach((dupes) => {
         dupes.forEach((dupe) => console.log(dupe))
       })
     }
-
-    console.log('Done')
   } catch (error) {
     console.error(error.message)
     process.exit()
