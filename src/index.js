@@ -93,7 +93,8 @@ const run = async () => {
     )
     spinner.succeed('Hashed images')
     if (argv.output) {
-      spinner = ora(`Saving results to ${argv.output}`).start()
+      spinner.text = `Saving results to ${argv.output}`
+      spinner.start()
       const fd = await fs.open(argv.output, 'a')
       for (let dupes of duplicates) {
         for (let i = 0; i < dupes.length; i++) {
@@ -104,7 +105,8 @@ const run = async () => {
       await fd.close()
       spinner.succeed(`Results saved to ${argv.output}`)
     } else if (argv.remove) {
-      spinner = ora('Deleting duplicates...').start()
+      spinner.text = 'Deleting duplicates...'
+      spinner.start()
       for (let dupes of duplicates) {
         for (let i = 0; i < dupes.length; i++) {
           if (i === 0) {
