@@ -25,7 +25,7 @@ if (!isMainThread) {
     throw new Error('workerData must be an array')
   }
 
-  hashImages(workerData, 16)
+  hashImages(workerData[0], workerData[1])
     .then((data) => {
       parentPort.postMessage(data)
     })

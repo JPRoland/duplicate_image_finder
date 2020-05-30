@@ -9,15 +9,15 @@ const cpuCount = os.cpus().length
 
 const workerScript = path.join(__dirname, './workers/hasher.js')
 
-const hashImagesWithWorker = (images) => {
+const hashImagesWithWorker = (images, bits) => {
   return new Promise((resolve, reject) => {
-    const worker = new Worker(workerScript, { workerData: images })
+    const worker = new Worker(workerScript, { workerData: [images, bits] })
     worker.on('message', resolve)
     worker.on('error', reject)
   })
 }
 
-const distributeLoadAcrossWorkers = async (workers, images) => {
+const distributeLoadAcrossWorkers = async (workers, images, bits) => {
   const segments = Math.round(images.length / workers)
   const promises = Array(workers)
     .fill()
@@ -30,7 +30,7 @@ const distributeLoadAcrossWorkers = async (workers, images) => {
       } else {
         imagesToHash = images.slice(segments * index, segments * (index + 1))
       }
-      return hashImagesWithWorker(imagesToHash)
+      return hashImagesWithWorker(imagesToHash, bits)
     })
   const segmentResults = await Promise.all(promises)
   return segmentResults.reduce((acc, res) => {
@@ -82,7 +82,11 @@ const run = async () => {
   try {
     const images = await getImages(argv.dir)
     console.log('Hashing images...')
-    const hashes = await distributeLoadAcrossWorkers(cpuCount, images)
+    const hashes = await distributeLoadAcrossWorkers(
+      cpuCount,
+      images,
+      argv.bits
+    )
     const duplicates = Object.values(hashes).filter(
       (images) => images.length > 1
     )
