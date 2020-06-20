@@ -1,7 +1,11 @@
 {
-  "name": "duplicate_image_finder",
+  "name": "image-dedupe",
   "version": "1.0.0",
-  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JPRoland/duplicate_image_finder"
+  },
+  "description": "A tool to find duplicate images based on perceptual image hashing",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
