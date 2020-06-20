@@ -1,4 +1,4 @@
-# img-dedupe
+# image-dedupe
 
 Detects duplicate images in a given directory using the Block Mean Value Based Image Perceptual Hashing algorithm by Bian Yang, Fan Gu and Xiamu Niu and the [block-hash](https://github.com/commonsmachinery/blockhash-js) implementation of said algorithm.
 
@@ -7,7 +7,7 @@ Detects duplicate images in a given directory using the Block Mean Value Based I
 ### Installation
 
 ```shell
-$ npm install img-dedupe
+$ npm install image-dedupe
 ```
 
 ## Usage

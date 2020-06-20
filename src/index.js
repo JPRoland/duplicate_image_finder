@@ -41,7 +41,7 @@ const distributeLoadAcrossWorkers = async (workers, images, bits) => {
 }
 
 const argv = require('yargs')
-  .scriptName('img-dedupe')
+  .scriptName('image-dedupe')
   .usage('Usage: $0 -d [search dir] -b [bits] -o [output file]')
   .help('h')
   .alias('h', 'help')
